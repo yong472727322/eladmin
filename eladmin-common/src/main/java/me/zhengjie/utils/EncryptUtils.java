@@ -85,4 +85,13 @@ public class EncryptUtils {
     public static String encryptPassword(String password){
         return  DigestUtils.md5DigestAsHex(password.getBytes());
     }
+
+    public static void main(String[] args) throws Exception {
+        String s = encryptPassword("bfvymnkkwkvxbjie");
+        System.out.println(s);
+        String s1 = desEncrypt("bfvymnkkwkvxbjie");
+        System.out.println(s1);
+        String s2 = desDecrypt(s1);
+        System.out.println(s2);
+    }
 }
