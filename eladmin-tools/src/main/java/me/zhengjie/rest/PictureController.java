@@ -1,8 +1,24 @@
+/*
+ *  Copyright 2019-2020 Zheng Jie
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package me.zhengjie.rest;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import me.zhengjie.aop.log.Log;
+import lombok.RequiredArgsConstructor;
+import me.zhengjie.annotation.Log;
 import me.zhengjie.domain.Picture;
 import me.zhengjie.service.PictureService;
 import me.zhengjie.service.dto.PictureQueryCriteria;
@@ -13,32 +29,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author 郑杰
  * @date 2018/09/20 14:13:32
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/pictures")
 @Api(tags = "工具：免费图床管理")
 public class PictureController {
 
     private final PictureService pictureService;
 
-    public PictureController(PictureService pictureService) {
-        this.pictureService = pictureService;
-    }
-
     @Log("查询图片")
     @PreAuthorize("@el.check('pictures:list')")
     @GetMapping
     @ApiOperation("查询图片")
-    public ResponseEntity getRoles(PictureQueryCriteria criteria, Pageable pageable){
+    public ResponseEntity<Object> query(PictureQueryCriteria criteria, Pageable pageable){
         return new ResponseEntity<>(pictureService.queryAll(criteria,pageable),HttpStatus.OK);
     }
 
@@ -54,31 +64,26 @@ public class PictureController {
     @PreAuthorize("@el.check('pictures:add')")
     @PostMapping
     @ApiOperation("上传图片")
-    public ResponseEntity upload(@RequestParam MultipartFile file){
-        String userName = SecurityUtils.getUsername();
+    public ResponseEntity<Object> upload(@RequestParam MultipartFile file){
+        String userName = SecurityUtils.getCurrentUsername();
         Picture picture = pictureService.upload(file,userName);
-        Map<String,Object> map = new HashMap<>(3);
-        map.put("errno",0);
-        map.put("id",picture.getId());
-        map.put("data",new String[]{picture.getUrl()});
-        return new ResponseEntity<>(map,HttpStatus.OK);
+        return new ResponseEntity<>(picture,HttpStatus.OK);
     }
 
-    @Log("删除图片")
-    @ApiOperation("删除图片")
-    @PreAuthorize("@el.check('pictures:del')")
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity delete(@PathVariable Long id) {
-        pictureService.delete(pictureService.findById(id));
-        return new ResponseEntity(HttpStatus.OK);
+    @Log("同步图床数据")
+    @ApiOperation("同步图床数据")
+    @PostMapping(value = "/synchronize")
+    public ResponseEntity<Object> synchronize(){
+        pictureService.synchronize();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Log("多选删除图片")
     @ApiOperation("多选删除图片")
     @PreAuthorize("@el.check('pictures:del')")
     @DeleteMapping
-    public ResponseEntity deleteAll(@RequestBody Long[] ids) {
+    public ResponseEntity<Object> delete(@RequestBody Long[] ids) {
         pictureService.deleteAll(ids);
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

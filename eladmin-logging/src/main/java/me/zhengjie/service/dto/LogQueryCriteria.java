@@ -1,9 +1,24 @@
+/*
+ *  Copyright 2019-2020 Zheng Jie
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package me.zhengjie.service.dto;
 
 import lombok.Data;
 import me.zhengjie.annotation.Query;
-
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * 日志查询类
@@ -13,16 +28,12 @@ import java.sql.Timestamp;
 @Data
 public class LogQueryCriteria {
 
-    // 多字段模糊
     @Query(blurry = "username,description,address,requestIp,method,params")
     private String blurry;
 
     @Query
     private String logType;
 
-    @Query(type = Query.Type.GREATER_THAN,propName = "createTime")
-    private Timestamp startTime;
-
-    @Query(type = Query.Type.LESS_THAN,propName = "createTime")
-    private Timestamp endTime;
+    @Query(type = Query.Type.BETWEEN)
+    private List<Timestamp> createTime;
 }
